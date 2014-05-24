@@ -1,5 +1,14 @@
 #! /usr/bin/ python
 
+########################################################################
+#                                                                      #
+#    A pet project to identify excellent algorithms                    #
+#    (e.g., "dormitory" => "dirty room"). In progress.                 #
+#                                                                      #
+#    Authored by Luke Albao http://github.com/lukealbao                #
+#                                                                      #
+########################################################################
+
 import math, itertools, re
 from operator import mul
 from collections import defaultdict
@@ -75,8 +84,6 @@ def score(words):
     "Don't count small, common words."
     m = map(lambda x: LEXICON[x][0] / LEXICON.N if len(x) > 3 else 0, words)
     return reduce(lambda x, y: x+y, m)
-
-
 
 
 ###  Anagram Generation   ###
