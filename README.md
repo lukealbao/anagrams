@@ -17,8 +17,8 @@ created the input string; the best would be the one such an adversary meant.
    c. Add in common proper nouns.
 5. Implement relevance graph and procedure for calculating best anagrams
    by relevance.
-6. Make generate_anagrams so that it need not take build_candidates as
-   a parameter.
+6. --Make generate_anagrams so that it need not take build_candidates as
+   a parameter.--
 
 
 ###USAGE
