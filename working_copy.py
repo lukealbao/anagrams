@@ -61,8 +61,8 @@ def generate_anagrams(cipher_text, sort_test=weighted_Pr):
     This is the meat of the program. It takes an input text and calls
     encode() to convert it into a hash. Then it builds a small list of
     candidate words which appear in at least one permutation of the 
-    input. This list is sorted to according to weighted_Pr, which 
-    combines the raw popularity of the word according to the LEXICON,
+    input. This list is sorted according to weighted_Pr, which 
+    combines the raw probability of the word according to the LEXICON,
     giving added weight to longer words.
 
     Then we loop through the candidates depth-first with an outer while
