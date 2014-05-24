@@ -23,9 +23,21 @@ created the input string; the best would be the one such an adversary meant.
 
 ###USAGE
 
+#### Within Python REPL
 ```python
 cipher_text = 'The Owl of Gold'
 anagrams = generate_anagrams(cipher_text, build_candidates(cipher_text))
-top_5000 = sorted([anagrams.next() for i in range(5000)],
+top_5000 = sorted([next(anagrams) for i in range(5000)],
                   key=score, reverse=True)
+```
+
+#### From Command Line
+```bash
+$ python anagrams.py
+>>> Input text: The Owl of Gold
+>>> ...
+>>> How many anagrams to return: 50
+>>> ...
+>>> followed goth
+>>> ... etc
 ```
