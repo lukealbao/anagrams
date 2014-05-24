@@ -20,7 +20,11 @@ class Prdist(dict):
     def __init__(self, text):
         for word, score in text:
             self[word] = [int(score), encode(word)] 
-        self.N = float(sum([self[word][0] for word in self.iterkeys()]))
+        self.N = float(sum([self(word) for word in self.iterkeys()]))
+
+    def __call__(self, word):
+        return self[word][0]
+
     def encoded(self, word):
         return self[word][1]
 
@@ -51,29 +55,63 @@ def get_candidates(code, lexicon=LEXICON):
     return [word for word in lexicon if code % LEXICON.encoded(word) == 0]
 
 def generate_anagrams(cipher_text, sort_test=weighted_Pr):
-    "Return a generator which spits anagram lists."
+    """
+    Return a generator which spits anagram lists.
+    
+    This is the meat of the program. It takes an input text and calls
+    encode() to convert it into a hash. Then it builds a small list of
+    candidate words which appear in at least one permutation of the 
+    input. This list is sorted to according to weighted_Pr, which 
+    combines the raw popularity of the word according to the LEXICON,
+    giving added weight to longer words.
+
+    Then we loop through the candidates depth-first with an outer while
+    loop. We use a simple stack to build a tree for each candidate. 
+
+    An inner while loop traverses the tree, which has three possible 
+    states: 
+    
+    1. Total success: the branch factors result in a cipher hash of 1,
+       meaning that all letters are accounted for. We yield the words
+       from the stack for a list which is a complete, valid anagram.
+    2. Total failure: there are no candidates available for the current
+       branch. We remove it from the stack, back up and try again.
+    3. Partial success: we take the first candidate available, and start
+       a new child branch.
+    """
     stack = []
     candidates = sorted(build_candidates(cipher_text), 
                         key = lambda x: sort_test(x, len(cipher_text)))
     cipher_code = encode(''.join(re.findall('[a-z]+', cipher_text)))
+
     while candidates:
-        branch = candidates.pop()
-        stack.append((branch, code/LEXICON.encoded(branch), 
-                     get_candidates(code/LEXICON.encoded(branch), candidates)))
+        root_word = candidates.pop()
+
+        ## Each element in stack has a branch [tuple] with the following:
+        ## (1) Root-level word-candidate
+        ## (2) New cipher-code with root-level word factored out
+        ## (3) New, smaller candidate list on new cipher code
+        stack.append((root_word, # (1)
+                      cipher_code/LEXICON.encoded(root_word), # (2)
+                      get_candidates(cipher_code/LEXICON.encoded(root_word), 
+                                     candidates))) # (3)
         while stack:
-            leaf, leaf_code, leaf_candidates = stack[-1]
+            branch_word, branch_code, branch_candidates = stack[-1]
+
             # Success - a full anagram!
-            if leaf_code == 1: 
+            if branch_code == 1: 
                 stack.pop() 
-                yield [word[0] for word in stack] + [leaf] 
-            # Failures: drop leaf from branch. Continue one level back.
-            elif not leaf_candidates: stack.pop() #old: continue
+                yield [word[0] for word in stack] + [branch_word] 
+
+            # Failures: drop branch from parent. Continue one level back.
+            elif not branch_candidates: stack.pop()
+
             # Partial Success: Continue branch. 
             else:
-                next = leaf_candidates.pop()
-                stack.append((next, leaf_code/LEXICON.encoded(next), 
-                             get_candidates(leaf_code/LEXICON.encoded(next), 
-                             leaf_candidates)))
+                next = branch_candidates.pop() # (1)
+                stack.append((next, branch_code/LEXICON.encoded(next), # (2)
+                             get_candidates(branch_code/LEXICON.encoded(next), 
+                             branch_candidates))) # (3)
                 continue    
 
 def build_candidates(input_string, lexicon=LEXICON):
@@ -84,10 +122,6 @@ def build_candidates(input_string, lexicon=LEXICON):
         if code % _code == 0: 
             d[word] = lexicon[word]
     return d
-
-def score_anagram(words, length=50):
-    m = map(lambda x: weighted_Pr(x, length), words)
-    return reduce(lambda x, y: x+y, m)
 
 def score(words):
     "Don't count small, common words."
