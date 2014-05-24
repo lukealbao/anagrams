@@ -10,7 +10,7 @@ created the input string; the best would be the one such an adversary meant.
 1. Compile bigram probability distribution. Use it to implement a 
    sort_anagram procedure.
 2. Tests & error handling.
-3. ~~~UI code.~~~
+3. ~~UI code.~~
 4. Clean up Lexicon file:
    a. Remove obscure two-letter and three-letter words
    b. Cut down size to ~100k words.
