@@ -30,34 +30,36 @@ def datafile(filename, sep='\t'):
     for line in open(filename):
         yield line.split(sep)
 
-NWORDS = Prdist(datafile('newwords.txt'))
+LEXICON = Prdist(datafile('newwords.txt'))
 
 def n_choose_k(n, k):
+    "Auxiliary function for use in weighted_Pr."
     return math.factorial(n) \
            / float(math.factorial(n - k) * math.factorial(k))
 
-def weighted_Pr(word, n, NWORDS=NWORDS):
+def weighted_Pr(word, n, lexicon=LEXICON):
     "Calculate prior probability and give greater weight to longer words"
     k = len(word)
-    prior_probability = NWORDS[word][0] / NWORDS.N
+    prior_probability = lexicon[word][0] / lexicon.N
     return prior_probability / (n_choose_k(n, k) * 26**(n-k))
     
              
-def get_candidates(code, lexicon=NWORDS):
-    """Return a list of all words found in input string."""
+def get_candidates(code, lexicon=LEXICON):
+    "Return a list of all words found in input string."
     if type(code) == str: 
          code = encode(code)
-    return [word for word in lexicon if code % NWORDS.encoded(word) == 0]
+    return [word for word in lexicon if code % LEXICON.encoded(word) == 0]
 
-def generate_anagrams(code, candidates, sort_test=weighted_Pr):
+def generate_anagrams(cipher_text, sort_test=weighted_Pr):
     "Return a generator which spits anagram lists."
     stack = []
-    candidates = sorted(candidates, key = lambda x: sort_test(x, len(code)))
-    if type(code) == str: code = encode(''.join(re.findall('[a-z]+', code)))
+    candidates = sorted(build_candidates(cipher_text), 
+                        key = lambda x: sort_test(x, len(cipher_text)))
+    cipher_code = encode(''.join(re.findall('[a-z]+', cipher_text)))
     while candidates:
         branch = candidates.pop()
-        stack.append((branch, code/NWORDS.encoded(branch), 
-                     get_candidates(code/NWORDS.encoded(branch), candidates)))
+        stack.append((branch, code/LEXICON.encoded(branch), 
+                     get_candidates(code/LEXICON.encoded(branch), candidates)))
         while stack:
             leaf, leaf_code, leaf_candidates = stack[-1]
             # Success - a full anagram!
@@ -69,12 +71,12 @@ def generate_anagrams(code, candidates, sort_test=weighted_Pr):
             # Partial Success: Continue branch. 
             else:
                 next = leaf_candidates.pop()
-                stack.append((next, leaf_code/NWORDS.encoded(next), 
-                             get_candidates(leaf_code/NWORDS.encoded(next), 
+                stack.append((next, leaf_code/LEXICON.encoded(next), 
+                             get_candidates(leaf_code/LEXICON.encoded(next), 
                              leaf_candidates)))
                 continue    
 
-def build_candidates(input_string, lexicon=NWORDS):
+def build_candidates(input_string, lexicon=LEXICON):
     code = encode(''.join(re.findall('[a-z]+', input_string.lower())))
     d = {}
     for word in lexicon:
@@ -89,7 +91,7 @@ def score_anagram(words, length=50):
 
 def score(words):
     "Don't count small, common words."
-    m = map(lambda x: NWORDS[x][0] / NWORDS.N if len(x) > 3 else 0, words)
+    m = map(lambda x: LEXICON[x][0] / LEXICON.N if len(x) > 3 else 0, words)
     return reduce(lambda x, y: x+y, m)
 
 """
