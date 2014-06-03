@@ -26,7 +26,7 @@ created the input string; the best would be the one such an adversary meant.
 #### Within Python REPL
 ```python
 cipher_text = 'The Owl of Gold'
-anagrams = generate_anagrams(cipher_text, build_candidates(cipher_text))
+anagrams = generate_anagrams(cipher_text)
 top_5000 = sorted([next(anagrams) for i in range(5000)],
                   key=score, reverse=True)
 ```
