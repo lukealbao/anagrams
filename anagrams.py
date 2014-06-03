@@ -116,7 +116,7 @@ def generate_anagrams(cipher_text, sort_test=weighted_Pr):
     stack = []
     candidates = sorted(build_candidates(cipher_text), 
                         key = lambda x: sort_test(x, len(cipher_text)))
-    cipher_code = encode(''.join(re.findall('[a-z]+', cipher_text)))
+    cipher_code = encode(''.join(re.findall('[a-z]+', cipher_text.lower())))
 
     while candidates:
         root_word = candidates.pop()
